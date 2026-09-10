@@ -1,0 +1,12 @@
+{
+  "name": "chatbase",
+  "description": "Official Chatbase MCP plugin",
+  "owner": { "name": "Chatbase", "url": "https://www.chatbase.co" },
+  "plugins": [
+    {
+      "name": "chatbase",
+      "source": "./plugins/chatbase",
+      "description": "Manage Chatbase agents, sources, conversations and help-desk tickets from your editor."
+    }
+  ]
+}

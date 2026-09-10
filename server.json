@@ -1,0 +1,13 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "co.chatbase/chatbase",
+  "description": "Manage Chatbase agents, sources, conversations and help-desk tickets.",
+  "version": "1.0.0",
+  "websiteUrl": "https://www.chatbase.co",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.chatbase.co/api/mcp"
+    }
+  ]
+}

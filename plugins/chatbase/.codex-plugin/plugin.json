@@ -1,0 +1,6 @@
+{
+  "name": "chatbase",
+  "version": "0.1.0",
+  "description": "Manage Chatbase agents, sources, conversations and help-desk tickets from your editor.",
+  "author": { "name": "Chatbase", "url": "https://www.chatbase.co" }
+}
