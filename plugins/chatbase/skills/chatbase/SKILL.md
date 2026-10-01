@@ -57,7 +57,7 @@ Several tools return something that is only meaningful once you fetch the rest, 
 - **Never answer a counting or superlative question from one page.** "Which agent has the most sources", "how many tickets are open", "the oldest conversation" — all require the full set. One page gives you the top of a list, not a maximum.
 - **Ids are not answers.** A result carrying `agentId`, `sourceId`, `statusId`, `authorId` or `conversationId` and no name is not yet usable by a person. Resolve it — `chatbase_get_agent`, `chatbase_get_source`, `chatbase_list_ticket_statuses`, `chatbase_list_helpdesk_teams` — and report the name, keeping the id only if the user needs it to act.
 - **A summary is a filter, not a reading.** `chatbase_export_conversations` in its default `summary` mode omits message bodies. Answering "what did people ask about" from summaries alone is guessing; use the summaries to choose which conversations matter, then re-read those few with `include: 'messages'`.
-- **A ticket without its messages is half a ticket.** `chatbase_get_ticket` returns the record; the conversation lives in `chatbase_list_ticket_messages`. Summarising a ticket means reading both.
+- **A ticket without its messages is half a ticket.** `chatbase_list_tickets` returns records only. Set `includeMessages: true` whenever the answer depends on what was said — reading a ticket's content, a general question about tickets ("what are customers complaining about", "any refund issues this week"), or a summary of one or more tickets — and leave it off for triage and counts. Each ticket then carries `messages`: its first 25 replies and notes, oldest first; add `messageTypes: "reply,note,event"` only when status or assignment history matters. `messages.pagination.hasMore: true` means the thread is longer — continue it with `chatbase_list_ticket_messages`, passing `messages.pagination.cursor` and your `messageTypes` as `types`. For one ticket by number, read `chatbase_get_ticket` and `chatbase_list_ticket_messages`.
 - **A write result is a receipt, not a state.** `{"success": true}` confirms the call was accepted, not what the record now looks like. When the user needs to see the outcome, re-read it — `chatbase_get_ticket`, `chatbase_get_agent`, `chatbase_get_source` — and report actual state.
 - **`chatbase_get_sources_summary` is counts, not content.** Use it to see how much a knowledge base holds; use `chatbase_list_sources` when the user needs to know what is in it.
 
@@ -82,7 +82,7 @@ Ask the user before calling any of:
 
 ## Ticket attachments
 
-`chatbase_list_ticket_messages` returns `attachments` as `{name, url, type, size}`. The file is fetchable — retrieve it yourself instead of telling the user to go to the dashboard or CLI.
+`chatbase_list_ticket_messages` and `chatbase_list_tickets` with `includeMessages` return `attachments` as `{name, url, type, size}`. The file is fetchable — retrieve it yourself instead of telling the user to go to the dashboard or CLI.
 
 - Fetch `url` with a plain HTTP GET and **no `Authorization` header**. The route is unauthenticated by design — the token embedded in the URL path is itself the credential. Do **not** add one: the route ignores it, so it does not fail loudly — it just means you transmitted your OAuth access token to a route that never needed it, and on to the storage host it redirects to.
 - The request 302-redirects to a short-lived (120s) signed URL. Follow the redirect and read the body in the same request; do not save the redirect target to fetch later, since it will have expired.
