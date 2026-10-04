@@ -18,9 +18,15 @@ Judgment the tool schemas can't express. Read this before calling any tool below
 - **Deleting a source is immediate and permanent.** The knowledge is purged straight away; the source comes back `deleted`, or `toBeDeleted` while the purge finishes. Nothing restores it — there is no undo and no recovery tool. Confirm with the user before every `chatbase_delete_source`, and say plainly that it cannot be undone. Re-creating the source afterwards is a new source that has to train again from scratch.
 - Editing a source overwrites its content and retrains it on the spot, so the previous text and everything learned from it are gone. Treat `chatbase_update_source` as destructive too: confirm before overwriting content the user may not have a copy of.
 
-## Conversations: `chatbase_export_conversations` only
+## Conversations: find with `chatbase_search_conversations`, read with `chatbase_export_conversations`
 
-- This is the **only** source-complete conversation reader on this server. There is no `listConversations`, `getConversation`, or `listConversationMessages` tool — they were deliberately left out because those API operations silently return API-source conversations only, making widget and WhatsApp conversations invisible. Never conclude "no conversations exist" from anything but export.
+- These are the **only** source-complete conversation tools on this server. There is no `listConversations`, `getConversation`, or `listConversationMessages` tool — they were deliberately left out because those API operations silently return API-source conversations only, making widget and WhatsApp conversations invisible. Never conclude "no conversations exist" from anything else.
+- Use `chatbase_search_conversations` to find conversations by what was said (`query`) or by what happened: `escalated`, `actionType`, `tool` / `toolOutcome`, `procedure` / `procedureOutcome`, `feedback`, `sentiment`, `topic`, dates. It returns ids, titles and a matching snippet, never full messages. Read the ones that matter with `chatbase_export_conversations` and `conversationId`.
+- To try several terms or filter combinations, put them all in one call's `searches` array (up to 5) instead of searching once per turn.
+- Search only covers conversations created since the 1st of the month 12 months ago. For older conversations, or to count every conversation an agent has, use export — an empty search over an older window proves nothing.
+- A search page can come back empty while `hasMore` is true — keep following `pagination.cursor` until `hasMore` is false before concluding nothing matched.
+- A snippet is one excerpt, not the conversation. Do not answer "what happened" from snippets alone.
+- `CONVERSATION_SEARCH_UNAVAILABLE` means the account is HIPAA-enabled or the agent redacts its data. Drop `query` and search by filters, or use export.
 - `include` defaults to `summary` (message bodies omitted). Only switch to `include: 'messages'` for a conversation you've already picked out for full reading, one or a few `conversationId`s at a time — not as the first pass over a page.
 - Bulk analysis over many conversations is MCP work. Do it well:
   - Stay in `include: 'summary'` for the sweep — it omits message bodies and is the cheap mode.
