@@ -46,7 +46,7 @@ Judgment the tool schemas can't express. Read this before calling any tool below
 
 The reply may contain `tool-call` and `tool-result` parts from actions the agent ran, carrying internal identifiers — `toolCallId`, and widget `state.id` / `actionId`. Read them if they help you answer, but summarise what the agent did in plain language. Do not quote those ids back to the user, and never write them into a ticket reply or a file.
 
-`chatbase_update_conversation` pauses or resumes a live conversation. Pausing stops the agent replying to a real person who may be mid-conversation, so confirm with the user before calling it, and say which conversation you are changing.
+`chatbase_update_conversation` sets a conversation's `status` to `ongoing`, `paused` or `ended`. Pausing or ending stops the agent replying to a real person who may be mid-conversation, and on conversation-billing accounts an ended conversation cannot be resumed (`CONVERSATION_BILLING_NOT_SUPPORTED`). Confirm with the user before pausing or ending, and say which conversation you are changing.
 
 ## Pagination discipline
 
@@ -75,6 +75,7 @@ Ask the user before calling any of:
 - `chatbase_delete_agent`
 - `chatbase_delete_source` — the purge is immediate and there is no way back.
 - `chatbase_update_source` — a content change overwrites the source and retrains it at once, discarding the previous text and its embeddings. It does not "delete" anything by name, which is exactly why it is easy to under-estimate.
+- `chatbase_update_conversation` with `status: 'ended'` — on conversation-billing accounts the conversation is billed and cannot be resumed.
 
 ## Error-code playbook
 
