@@ -24,10 +24,11 @@ Judgment the tool schemas can't express. Read this before calling any tool below
 - Use `chatbase_search_conversations` to find conversations by what was said (`query`) or by what happened: `escalated`, `actionType`, `tool` / `toolOutcome`, `procedure` / `procedureOutcome`, `feedback`, `sentiment`, `topic`, dates. It returns ids, titles and a matching snippet, never full messages. Read the ones that matter with `chatbase_export_conversations` and `conversationId`.
 - To try several terms or filter combinations, put them all in one call's `searches` array (up to 5) instead of searching once per turn.
 - Search only covers conversations created since the 1st of the month 12 months ago. For older conversations, or to count every conversation an agent has, use export — an empty search over an older window proves nothing.
+- To limit a search to a period, filter on last activity with `updatedAfter` / `updatedBefore`.
 - A search page can come back empty while `hasMore` is true — keep following `pagination.cursor` until `hasMore` is false before concluding nothing matched.
 - A snippet is one excerpt, not the conversation. Do not answer "what happened" from snippets alone.
 - `CONVERSATION_SEARCH_UNAVAILABLE` means the account is HIPAA-enabled or the agent redacts its data. Drop `query` and search by filters, or use export.
-- `include` defaults to `summary` (message bodies omitted). Only switch to `include: 'messages'` for a conversation you've already picked out for full reading, one or a few `conversationId`s at a time — not as the first pass over a page.
+- `include` defaults to `summary` (message bodies omitted). Only switch to `include: 'messages'` for a conversation you've already picked out for full reading, one `conversationId` per call, several calls together — not as the first pass over a page. A page of full transcripts can be too large for the client to read.
 - Bulk analysis over many conversations is MCP work. Do it well:
   - Stay in `include: 'summary'` for the sweep — it omits message bodies and is the cheap mode.
   - Page with `pagination.cursor` until `hasMore` is false, aggregating findings as you go rather than accumulating raw pages in context.
@@ -47,6 +48,10 @@ Judgment the tool schemas can't express. Read this before calling any tool below
 The reply may contain `tool-call` and `tool-result` parts from actions the agent ran, carrying internal identifiers — `toolCallId`, and widget `state.id` / `actionId`. Read them if they help you answer, but summarise what the agent did in plain language. Do not quote those ids back to the user, and never write them into a ticket reply or a file.
 
 `chatbase_update_conversation` sets a conversation's `status` to `ongoing`, `paused` or `ended`. Pausing or ending stops the agent replying to a real person who may be mid-conversation, and on conversation-billing accounts an ended conversation cannot be resumed (`CONVERSATION_BILLING_NOT_SUPPORTED`). Confirm with the user before pausing or ending, and say which conversation you are changing.
+
+## `chatbase_update_agent` replaces lists whole
+
+Only the fields you send change, but list fields (`initialMessages`, `suggestedMessages`, `allowedDomains`, `blockedCountries`) and the whole `channelInstructions` record are replaced, not merged. Read the current value with `chatbase_get_agent`, change it, and send the full result. `channelInstructions` needs every channel key (`chat_widget`, `help_page`, `center_stage`, `side_panel`, `slack`, `whatsapp`, `messenger`, `instagram`, `salesforce`, `zendesk`, `zendesk_messaging`, `api`, `email`, `android_sdk`, `ios_sdk`, `phone`, `search`): keep stored overrides and send `{}` for a channel with none. An override is the instruction string, or `{"chat": "...", "voice": "..."}`; no other fields. An empty string is an empty override, not "use the main instructions". Show the user the before and after of any instruction or setting change, and re-read with `chatbase_get_agent` afterwards: the write only returns `success`.
 
 ## Pagination discipline
 
@@ -76,6 +81,8 @@ Ask the user before calling any of:
 - `chatbase_delete_source` — the purge is immediate and there is no way back.
 - `chatbase_update_source` — a content change overwrites the source and retrains it at once, discarding the previous text and its embeddings. It does not "delete" anything by name, which is exactly why it is easy to under-estimate.
 - `chatbase_update_conversation` with `status: 'ended'` — on conversation-billing accounts the conversation is billed and cannot be resumed.
+- `chatbase_create_ticket_message` — every reply reaches the customer and can't be taken back. Get approval for each reply; never send several under one approval.
+- `chatbase_update_ticket` to a closed status — closing can email the customer a satisfaction survey and run help-desk triggers.
 
 ## Error-code playbook
 
@@ -85,6 +92,7 @@ Ask the user before calling any of:
 - `CHAT_CONVERSATION_NOT_ONGOING` — the conversation ended; start a new one instead of retrying the same `conversationId`.
 - `SOURCE_PENDING_DELETION` — the source is mid-purge and cannot be edited. It is not recoverable: create a new source instead of waiting for it to come back.
 - `SOURCE_IS_TRAINING` — a training run owns the source right now, so the edit would be overwritten by the run's own write. Wait and retry the edit; deleting is still allowed.
+- `CONVERSATION_NOT_TAKEN_OVER` — the ticket's customer is still talking to the agent on that channel. The user takes the conversation over in the Chatbase dashboard first; this server can't. Don't retry until they have.
 - 5xx from `chatbase_update_ticket` — do not assume the update was rejected. Fields are validated together but written independently, so some may have applied. Re-read with `chatbase_get_ticket` and report actual state before retrying; never retry the whole payload blind.
 
 ## Ticket attachments
