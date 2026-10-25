@@ -24,7 +24,7 @@ For a file or document, read it with your own file tools. For a large one, work 
 
 - **In the instructions:** show before/after; on approval, `chatbase_update_agent` with the full new `instructions` string.
 - **In a text or Q&A source:** source text can't be read, so name the likely source. Replace it with `chatbase_update_source` only if the user pastes the full new text; otherwise add the new Q&A and tell the user which source to fix in the dashboard.
-- **On their website:** the site has to be fixed first. A single-page link re-scrapes on `chatbase_update_source` when the call sends a field (send `slowScraping: false`; it has no effect on a single page). A crawled or sitemap site only re-crawls when its `excludePaths` or `includeOnlyPaths` change, so for a plain refresh offer weekly auto-retrain (`chatbase_update_agent_auto_retrain`, needs the Standard plan and a trained agent) or a retrain from the dashboard.
+- **On their website:** the site has to be fixed first. A single-page link re-scrapes on `chatbase_update_source` when the call sends a field (send `slowScraping: false`; it has no effect on a single page). A crawled or sitemap site only re-crawls when its `excludePaths` or `includeOnlyPaths` change, so for a plain refresh offer weekly auto-retrain (`chatbase_update_agent_auto_retrain`, needs the Basic plan and a trained agent) or a retrain from the dashboard.
 
 ## Approve and write
 
