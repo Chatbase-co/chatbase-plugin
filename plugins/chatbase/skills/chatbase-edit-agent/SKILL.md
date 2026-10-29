@@ -21,6 +21,7 @@ One read, one write, one re-read.
 | Model, creativity | `model`, `temp` |
 | Bot used on someone else's site, spam, one user flooding, regions, spend | `allowedDomains`, `spamSettings`, `ipRateLimits`, `blockedCountries`, `creditLimit` |
 | Voice | `voiceSettings` (merged into the current settings) and the `voice` values in `channelInstructions` |
+| Faster voice replies, or more languages and custom voices | `voiceSettings.mode`: `live` replies almost instantly but covers fewer languages (check the agent's `voiceSettings.transcriber.language` first); `classic` covers more languages and custom voices. `voiceSettings.liveVoice` picks the Live voice; `voiceSettings.liveInstructions` sets how it sounds (tone, pace, formality, emotion — not what it says) |
 
 3. Draft the smallest change. Every other rule stays word for word; don't turn three lines into an essay. `instructions` holds at most 30,000 characters.
 4. Show before/after of the changed lines only, and keep the full old value in the conversation so the user can undo.
