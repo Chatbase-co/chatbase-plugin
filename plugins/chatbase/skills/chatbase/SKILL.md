@@ -111,6 +111,17 @@ Ask the user before calling any of:
 
 Every `chatbase_*_ticket*` tool operates on **Chatbase's own help desk only**. Chatbase can integrate with third-party ticketing platforms (Zendesk, Intercom, etc.), but neither this MCP server nor the CLI can read or write tickets in them. Never present a Chatbase helpdesk result as if it covers a customer's third-party platform, and if the user asks about one, say plainly that it isn't reachable from here.
 
+## Events: subscribe instead of polling
+
+If `events/list` is available, the server can notify a webhook you control when something happens, so you don't have to poll. Subscribe with `events/subscribe`: the event name, `arguments` with the `agentId`, and `delivery` with `mode: "webhook"`, an https `url` and a `secret` you generate (`whsec_` followed by 24 to 64 random bytes, base64-encoded). The server first POSTs a signed challenge to the URL, which must echo it back.
+
+- Deliveries are signed (Standard Webhooks) and carry only ids. Fetch the record with the tool named in the event's description, and never act on the payload alone.
+- A subscription expires at the `refreshBefore` the server returns, at most 24 hours out. Call `events/subscribe` again with the same arguments before then to renew it. Send `ttlMs: null` to ask for no expiry: the response then has `refreshBefore: null` and the subscription lasts until the connection is revoked or expires.
+- Delivery is at least once and can arrive out of order, so dedupe on `eventId`.
+- If you subscribe to both `chatbase.ticket.created` and `chatbase.conversation.escalated`, a ticket created by the AI agent handing a conversation over arrives only as `chatbase.conversation.escalated`, which carries the `ticketNumber`.
+- Conversations from the Playground and previews never send events.
+- Revoking the connection ends its subscriptions.
+
 ## When a tool seems missing
 
 Call `chatbase_whoami` first. A short tool list almost always means a narrowly-scoped OAuth grant, not an absent capability.
