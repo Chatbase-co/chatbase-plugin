@@ -82,7 +82,7 @@ Ask the user before calling any of:
 - `chatbase_delete_conversation` — the conversation disappears from chat logs and the API, and no tool restores it.
 - `chatbase_update_source` — a content change overwrites the source and retrains it at once, discarding the previous text and its embeddings. It does not "delete" anything by name, which is exactly why it is easy to under-estimate.
 - `chatbase_update_conversation` with `status: 'ended'` — on conversation-billing accounts the conversation is billed and cannot be resumed.
-- `chatbase_create_ticket_message` — every reply reaches the customer and can't be taken back. Get approval for each reply; never send several under one approval.
+- `chatbase_create_ticket_message` with `type: 'reply'` — every reply reaches the customer and can't be taken back. Get approval for each reply; never send several under one approval. A `note` stays internal to the team.
 - `chatbase_update_ticket` to a closed status — closing can email the customer a satisfaction survey and run help-desk triggers.
 
 ## Error-code playbook
@@ -124,7 +124,7 @@ If `events/list` is available, the server can notify a webhook you control when 
 
 ## When a tool seems missing
 
-Call `chatbase_whoami` first. A short tool list almost always means a narrowly-scoped OAuth grant, not an absent capability.
+Call `chatbase_whoami` first. Every tool is always listed; a call refused for permissions means the OAuth grant lacks that scope, not that the capability is absent.
 
 ## Capabilities that live in the CLI, permanently
 
