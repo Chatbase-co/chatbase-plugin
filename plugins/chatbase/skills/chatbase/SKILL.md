@@ -80,7 +80,10 @@ Ask the user before calling any of:
 - `chatbase_delete_agent`
 - `chatbase_delete_source` — the purge is immediate and there is no way back.
 - `chatbase_delete_conversation` — the conversation disappears from chat logs and the API, and no tool restores it.
+- `chatbase_delete_action` — no tool restores it. When procedures mention it, ask again before editing them to remove the mention.
+- `chatbase_delete_procedure` — its run history goes with it, and no tool restores either.
 - `chatbase_update_source` — a content change overwrites the source and retrains it at once, discarding the previous text and its embeddings. It does not "delete" anything by name, which is exactly why it is easy to under-estimate.
+- `chatbase_update_action` with `fields` and `chatbase_update_procedure` with `steps` — each replaces the whole list, so fields or steps left out are gone.
 - `chatbase_update_conversation` with `status: 'ended'` — on conversation-billing accounts the conversation is billed and cannot be resumed.
 - `chatbase_create_ticket_message` with `type: 'reply'` — every reply reaches the customer and can't be taken back. Get approval for each reply; never send several under one approval. A `note` stays internal to the team.
 - `chatbase_update_ticket` to a closed status — closing can email the customer a satisfaction survey and run help-desk triggers.
