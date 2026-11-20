@@ -103,9 +103,10 @@ Ask the user before calling any of:
 
 `chatbase_list_ticket_messages` and `chatbase_list_tickets` with `includeMessages` return `attachments` as `{name, url, type, size}`. The file is fetchable — retrieve it yourself instead of telling the user to go to the dashboard or CLI.
 
-- Fetch `url` with a plain HTTP GET and **no `Authorization` header**. The route is unauthenticated by design — the token embedded in the URL path is itself the credential. Do **not** add one: the route ignores it, so it does not fail loudly — it just means you transmitted your OAuth access token to a route that never needed it, and on to the storage host it redirects to.
-- The request 302-redirects to a short-lived (120s) signed URL. Follow the redirect and read the body in the same request; do not save the redirect target to fetch later, since it will have expired.
-- The **token URL itself does not expire.** Treat it as a durable secret, not a throwaway link: fetch it only when you need the content, never repeat it back in your own output, and never write it into a file or a ticket reply.
+- Fetch `url` exactly as returned, with a plain HTTP GET and **no `Authorization` header**. The URL carries its own signature in the query string; do not strip or change it, and do not add your OAuth access token: the route ignores it, and you would be sending it on to the storage host it redirects to.
+- The `url` expires one hour after the list call that returned it. If it answers 404, list the messages again to get a fresh one.
+- The request 302-redirects to a short-lived (60s) signed URL. Follow the redirect and read the body in the same request; do not save the redirect target to fetch later, since it will have expired.
+- Treat `url` as a secret while it is valid: fetch it only when you need the content, never repeat it back in your own output, and never write it into a file or a ticket reply.
 - `name`, `type`, and `size` may be `null`; don't assume a filename or MIME type exists before using one.
 - `attachments` is always an empty array on `event` messages — don't expect files there.
 - After `chatbase_create_ticket_message` succeeds, tell the user the reply was recorded, not delivered — and re-read with `chatbase_get_ticket` rather than assume its status is unchanged.
