@@ -1,0 +1,3339 @@
+{
+ "tools": [
+  {
+   "name": "chatbase_list_agents",
+   "description": "List agents. Returns a paginated list of all agents for the authenticated account",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "cursor": {
+      "type": "string",
+      "description": "Opaque cursor from a previous response to fetch the next page"
+     },
+     "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 20,
+      "description": "Number of items per page (1 to 100, default 20)"
+     }
+    }
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_create_agent",
+   "description": "Create agent. Creates a new agent. If `url` is provided, a link source is created from that URL and training is queued automatically.\n\nThe agent is always created even if source setup or training fails \u2014 `id` is always returned. Check `pendingSteps` in the response to see which steps need to be retried:\n- `ADD_SOURCE` \u2014 the URL could not be added as a source. Add sources manually via the Sources API.\n- `TRAIN_AGENT` \u2014 training could not be started. Trigger it manually via `POST /agents/{agentId}/train`.\n\nWhen `pendingSteps` is absent, all steps succeeded.\n\nSubject to plan agent limits \u2014 returns `AGENT_LIMIT_REACHED` (403) when the account has reached its maximum number of agents",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Agent name"
+     },
+     "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Homepage URL of the product. The agent is pre-configured to answer questions about this website."
+     },
+     "instructions": {
+      "type": "string",
+      "maxLength": 30000,
+      "description": "System prompt / instructions for the agent (max 30,000 characters)"
+     },
+     "model": {
+      "type": "string",
+      "enum": [
+       "gpt-oss-120b",
+       "gpt-oss-20b",
+       "gpt-5.2",
+       "gpt-5.5",
+       "gpt-5.6-terra",
+       "gpt-6.1-sol",
+       "gpt-6.1-terra",
+       "gpt-6-luna",
+       "claude-opus-5-5",
+       "claude-sonnet-5-5",
+       "claude-haiku-5-5",
+       "gemini-2.5-pro",
+       "gemini-3-flash",
+       "gemini-3.1-flash-lite",
+       "gemini-3.1-pro",
+       "gemini-3.5-flash-lite",
+       "gemini-3.6-flash",
+       "gemini-3.8-flash",
+       "grok-4.7",
+       "DeepSeek-V3.1",
+       "DeepSeek-R1",
+       "DeepSeek-V4-Flash",
+       "DeepSeek-V4.1-Flash",
+       "kimi-k2.6",
+       "mistral-medium-3.5",
+       "mistral-small-2603",
+       "glm-5.2",
+       "glm-5.3-flash",
+       "auto"
+      ],
+      "description": "AI model to use"
+     },
+     "temp": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Model temperature (0\u20131)"
+     },
+     "visibility": {
+      "type": "string",
+      "enum": [
+       "public",
+       "private"
+      ],
+      "description": "Agent visibility (default: private)"
+     }
+    },
+    "required": [
+     "name"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false
+   }
+  },
+  {
+   "name": "chatbase_get_agent",
+   "description": "Get agent. Returns a single agent by ID",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_update_agent",
+   "description": "Update agent. Partially updates an agent. Only provided fields are changed",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Agent name"
+     },
+     "instructions": {
+      "type": "string",
+      "maxLength": 30000,
+      "description": "System prompt (max 30,000 characters)"
+     },
+     "channelInstructions": {
+      "type": [
+       "object",
+       "null"
+      ],
+      "properties": {
+       "chat_widget": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "help_page": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "center_stage": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "side_panel": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "slack": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "whatsapp": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "messenger": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "instagram": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "salesforce": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "zendesk": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "zendesk_messaging": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "api": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "email": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "android_sdk": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "ios_sdk": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "phone": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       },
+       "search": {
+        "anyOf": [
+         {
+          "type": "string",
+          "maxLength": 30000
+         },
+         {
+          "type": "object",
+          "properties": {
+           "chat": {
+            "type": "string",
+            "maxLength": 30000
+           },
+           "voice": {
+            "type": "string",
+            "maxLength": 30000
+           }
+          }
+         }
+        ]
+       }
+      },
+      "description": "Per-channel instruction overrides (max 30,000 characters each)"
+     },
+     "model": {
+      "type": "string",
+      "enum": [
+       "gpt-oss-120b",
+       "gpt-oss-20b",
+       "gpt-5.2",
+       "gpt-5.5",
+       "gpt-5.6-terra",
+       "gpt-6.1-sol",
+       "gpt-6.1-terra",
+       "gpt-6-luna",
+       "claude-opus-5-5",
+       "claude-sonnet-5-5",
+       "claude-haiku-5-5",
+       "gemini-2.5-pro",
+       "gemini-3-flash",
+       "gemini-3.1-flash-lite",
+       "gemini-3.1-pro",
+       "gemini-3.5-flash-lite",
+       "gemini-3.6-flash",
+       "gemini-3.8-flash",
+       "grok-4.7",
+       "DeepSeek-V3.1",
+       "DeepSeek-R1",
+       "DeepSeek-V4-Flash",
+       "DeepSeek-V4.1-Flash",
+       "kimi-k2.6",
+       "mistral-medium-3.5",
+       "mistral-small-2603",
+       "glm-5.2",
+       "glm-5.3-flash",
+       "auto"
+      ],
+      "description": "AI model"
+     },
+     "temp": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Temperature (0\u20131)"
+     },
+     "visibility": {
+      "type": "string",
+      "enum": [
+       "public",
+       "private"
+      ],
+      "description": "Visibility"
+     },
+     "allowedDomains": {
+      "type": [
+       "array",
+       "null"
+      ],
+      "items": {
+       "type": "string"
+      },
+      "description": "Allowed embed domains"
+     },
+     "suggestedMessages": {
+      "type": [
+       "array",
+       "null"
+      ],
+      "items": {
+       "anyOf": [
+        {
+         "type": "object",
+         "properties": {
+          "text": {
+           "type": "string",
+           "minLength": 1
+          },
+          "type": {
+           "type": "string",
+           "enum": [
+            "single"
+           ]
+          },
+          "order": {
+           "type": "number"
+          },
+          "icon": {
+           "type": [
+            "string",
+            "null"
+           ]
+          }
+         },
+         "required": [
+          "text",
+          "type",
+          "order"
+         ]
+        },
+        {
+         "type": "object",
+         "properties": {
+          "name": {
+           "type": "string",
+           "minLength": 1
+          },
+          "type": {
+           "type": "string",
+           "enum": [
+            "nested"
+           ]
+          },
+          "order": {
+           "type": "number"
+          },
+          "icon": {
+           "type": [
+            "string",
+            "null"
+           ]
+          },
+          "items": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "text": {
+              "type": "string",
+              "minLength": 1
+             },
+             "order": {
+              "type": "number"
+             },
+             "icon": {
+              "type": [
+               "string",
+               "null"
+              ]
+             }
+            },
+            "required": [
+             "text",
+             "order"
+            ]
+           },
+           "minItems": 1,
+           "maxItems": 20
+          }
+         },
+         "required": [
+          "name",
+          "type",
+          "order",
+          "items"
+         ]
+        }
+       ]
+      },
+      "description": "Suggested messages"
+     },
+     "initialMessages": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "Initial messages"
+     },
+     "creditLimit": {
+      "type": [
+       "integer",
+       "null"
+      ],
+      "description": "Per-agent credit limit (null = no limit)"
+     },
+     "notificationsSettings": {
+      "type": [
+       "object",
+       "null"
+      ],
+      "properties": {
+       "dailyLeadsCollected": {
+        "type": "object",
+        "properties": {
+         "active": {
+          "type": "boolean",
+          "description": "Whether this notification type is enabled"
+         },
+         "emails": {
+          "type": "array",
+          "items": {
+           "type": "string"
+          },
+          "maxItems": 10,
+          "description": "Recipient email addresses (max 10)"
+         }
+        },
+        "required": [
+         "active",
+         "emails"
+        ],
+        "description": "Daily summary of new leads collected by this agent"
+       },
+       "dailyConversations": {
+        "type": "object",
+        "properties": {
+         "active": {
+          "type": "boolean",
+          "description": "Whether this notification type is enabled"
+         },
+         "emails": {
+          "type": "array",
+          "items": {
+           "type": "string"
+          },
+          "maxItems": 10,
+          "description": "Recipient email addresses (max 10)"
+         }
+        },
+        "required": [
+         "active",
+         "emails"
+        ],
+        "description": "Daily summary of conversation volume for this agent"
+       }
+      },
+      "description": "Email notification settings (null = disable all notifications)"
+     },
+     "ipRateLimits": {
+      "type": [
+       "object",
+       "null"
+      ],
+      "properties": {
+       "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 200,
+        "description": "Maximum messages per timeframe (1\u2013200)"
+       },
+       "timeframe": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 3600,
+        "description": "Timeframe in seconds for the rate limit (1\u20133600)"
+       },
+       "message": {
+        "type": "string",
+        "description": "Message shown when rate limit is exceeded"
+       }
+      },
+      "description": "IP-based rate limit settings (partial update; null = reset to defaults)"
+     },
+     "spamSettings": {
+      "type": [
+       "object",
+       "null"
+      ],
+      "properties": {
+       "enabled": {
+        "type": "boolean",
+        "description": "Whether spam detection is enabled"
+       },
+       "prompt": {
+        "type": "string",
+        "maxLength": 2000,
+        "description": "Custom prompt describing what counts as spam for this agent (max 2000 chars)"
+       }
+      },
+      "required": [
+       "enabled",
+       "prompt"
+      ],
+      "description": "Spam detection settings (null = disable spam detection)"
+     },
+     "voiceSettings": {
+      "type": [
+       "object",
+       "null"
+      ],
+      "properties": {
+       "mode": {
+        "type": "string",
+        "enum": [
+         "live",
+         "classic"
+        ],
+        "description": "`live`: the agent listens and speaks with one realtime model, replying almost instantly. `classic`: a separate transcriber and voice, with more languages and custom voices. `voice` and `transcriber` apply to `classic` only."
+       },
+       "liveVoice": {
+        "type": "string",
+        "enum": [
+         "marin",
+         "beacon",
+         "bossa",
+         "brise",
+         "cinder",
+         "delta",
+         "flitz",
+         "gleam",
+         "harema",
+         "juni",
+         "meridian",
+         "nira",
+         "noeul",
+         "nuri",
+         "quartz",
+         "ripple",
+         "shida",
+         "sillage",
+         "stone",
+         "tempo",
+         "vesper",
+         "willow"
+        ],
+        "description": "Voice used when `mode` is `live`."
+       },
+       "liveInstructions": {
+        "type": "string",
+        "maxLength": 500,
+        "description": "How the voice sounds when `mode` is `live`: tone, pace, formality and emotion (max 500 chars). Write it in the language the agent speaks. An empty string clears it."
+       },
+       "voice": {
+        "type": "object",
+        "properties": {
+         "voiceName": {
+          "type": "string",
+          "enum": [
+           "Sarah",
+           "Laura",
+           "Alice",
+           "Matilda",
+           "Jessica",
+           "Lily",
+           "Bella",
+           "Roger",
+           "George",
+           "Charlie",
+           "Adam",
+           "Daniel",
+           "Brian",
+           "Eric",
+           "Chris",
+           "Liam",
+           "Harry",
+           "Will",
+           "Bill",
+           "Callum",
+           "Masry",
+           "Hanafi",
+           "Alberto Rodr\u00edguez",
+           "Jhenny",
+           "Anna",
+           "Peter",
+           "Marc Aur\u00e8le",
+           "Marie Line",
+           "Yasmin Alves",
+           "Lax",
+           "Skylar",
+           "Corey",
+           "Jacqueline",
+           "Blake",
+           "Pedro",
+           "Marta",
+           "Alloy",
+           "Ash",
+           "Ballad",
+           "Coral",
+           "Echo",
+           "Fable",
+           "Nova",
+           "Onyx",
+           "Sage",
+           "Shimmer",
+           "Nouran",
+           "Nermin",
+           "Othman",
+           "Layla",
+           "Nada",
+           "Mariam",
+           "Samir",
+           "Eman",
+           "Haneen",
+           "Fahd",
+           "Jasem",
+           "Marwa",
+           "Razan",
+           "Yehya",
+           "Hamdan",
+           "Zephyr",
+           "Puck",
+           "Charon",
+           "Kore",
+           "Fenrir",
+           "Leda",
+           "Orus",
+           "Aoede",
+           "Enceladus",
+           "Sulafat",
+           "Mina",
+           "Nina",
+           "Ruby",
+           "Mason",
+           "Rohan"
+          ],
+          "description": "Name of the voice for this agent."
+         },
+         "speed": {
+          "type": "number",
+          "minimum": 0.7,
+          "maximum": 1.2,
+          "description": "Speech rate multiplier (0.7\u20131.2). Only supported on select voices; ignored for others."
+         },
+         "stability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Voice consistency (0\u20131). Higher values produce more consistent delivery. Only supported on select voices; ignored for others."
+         },
+         "similarity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "How closely the output matches the reference voice sample (0\u20131). Only supported on select voices; ignored for others."
+         },
+         "instructions": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Natural-language delivery instructions for the voice (max 500 chars). Only supported on select voices; ignored for others."
+         }
+        },
+        "required": [
+         "voiceName"
+        ],
+        "description": "Text-to-speech voice configuration"
+       },
+       "transcriber": {
+        "type": "object",
+        "properties": {
+         "model": {
+          "type": "string",
+          "enum": [
+           "elevenlabs/scribe_v2_realtime",
+           "cartesia/ink-2",
+           "cartesia/ink-whisper",
+           "deepgram/nova-3",
+           "deepgram/nova-2",
+           "deepgram/flux-general-multi",
+           "soniox/stt-rt-v6",
+           "soniox/stt-rt-v5",
+           "soniox/stt-rt-v4",
+           "google/gemini-3.5-transcribe-live",
+           "hamsa/hamsa-ar"
+          ],
+          "description": "Speech-to-text model to use for this agent."
+         },
+         "language": {
+          "type": "string",
+          "description": "BCP-47 language code for speech recognition (e.g. \"en\", \"fr\", \"ar\"). Use \"multi\" for automatic detection. Valid codes depend on the selected model."
+         },
+         "minSilenceDuration": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 3,
+          "description": "Seconds of continuous silence that signals the user has finished speaking (0.1\u20133.0). Lower values make the agent respond faster but may cut off slow speakers."
+         },
+         "activationThreshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Voice activity detection sensitivity (0\u20131). Lower values detect quieter speech but may pick up background noise. Higher values require clearer speech to activate."
+         }
+        },
+        "required": [
+         "model",
+         "language",
+         "minSilenceDuration",
+         "activationThreshold"
+        ],
+        "description": "Speech-to-text (voice input) configuration"
+       },
+       "recordings": {
+        "type": "object",
+        "properties": {
+         "enabled": {
+          "type": "boolean",
+          "description": "Whether voice calls are recorded and stored"
+         },
+         "retentionDays": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many days recordings are kept before automatic deletion. 0 disables storage even when enabled is true."
+         }
+        },
+        "required": [
+         "enabled",
+         "retentionDays"
+        ],
+        "description": "Call recording and retention settings"
+       },
+       "maxConcurrentSessions": {
+        "type": [
+         "integer",
+         "null"
+        ],
+        "exclusiveMinimum": 0,
+        "description": "Maximum simultaneous active voice calls for this agent. null = no limit."
+       },
+       "maxCallDurationSeconds": {
+        "type": [
+         "integer",
+         "null"
+        ],
+        "exclusiveMinimum": 0,
+        "description": "Maximum length of a single call in seconds. The call ends automatically when reached. null = no limit."
+       },
+       "maxDailyCallsPerUser": {
+        "type": [
+         "integer",
+         "null"
+        ],
+        "exclusiveMinimum": 0,
+        "description": "Maximum voice calls a single user can start per calendar day. null = no limit."
+       },
+       "model": {
+        "type": "string",
+        "enum": [
+         "gpt-oss-120b",
+         "gpt-oss-20b",
+         "gpt-5.2",
+         "gpt-5.5",
+         "gpt-5.6-terra",
+         "gpt-6.1-sol",
+         "gpt-6.1-terra",
+         "gpt-6-luna",
+         "claude-opus-5-5",
+         "claude-sonnet-5-5",
+         "claude-haiku-5-5",
+         "gemini-2.5-pro",
+         "gemini-3-flash",
+         "gemini-3.1-flash-lite",
+         "gemini-3.1-pro",
+         "gemini-3.5-flash-lite",
+         "gemini-3.6-flash",
+         "gemini-3.8-flash",
+         "grok-4.7",
+         "DeepSeek-V3.1",
+         "DeepSeek-R1",
+         "DeepSeek-V4-Flash",
+         "DeepSeek-V4.1-Flash",
+         "kimi-k2.6",
+         "mistral-medium-3.5",
+         "mistral-small-2603",
+         "glm-5.2",
+         "glm-5.3-flash",
+         "auto"
+        ],
+        "description": "AI model used to generate responses during a voice call. Can be set independently from the chat model \u2014 faster, cheaper models are common here."
+       },
+       "temperature": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "description": "Randomness of voice responses (0\u20131). 0 = deterministic and focused, 1 = more varied and creative."
+       },
+       "allowInterruptions": {
+        "type": "boolean",
+        "description": "When true the user can speak while the agent is talking and the agent will stop and listen. When false the agent finishes its turn before processing new speech."
+       },
+       "allowTextInput": {
+        "type": "boolean",
+        "description": "When true users can also type messages during a voice session instead of only speaking."
+       },
+       "endConversationAfterSilenceSeconds": {
+        "type": [
+         "integer",
+         "null"
+        ],
+        "minimum": 10,
+        "description": "Seconds of inactivity before the session ends automatically. Minimum 10 seconds. null = session never auto-ends."
+       },
+       "initialMessage": {
+        "type": "string",
+        "maxLength": 500,
+        "description": "Message the agent speaks immediately when a voice session starts, before the user says anything. Leave empty to wait for the user to speak first (max 500 chars)."
+       },
+       "errorMessage": {
+        "type": "string",
+        "maxLength": 500,
+        "description": "Fallback message spoken to the user when the agent encounters an unrecoverable error during a call (max 500 chars)."
+       },
+       "visualization": {
+        "type": "object",
+        "properties": {
+         "style": {
+          "type": "string",
+          "enum": [
+           "basic",
+           "orb"
+          ],
+          "description": "basic shows a minimal ring that follows the widget theme. orb shows a fluid sphere tuned by the fields below."
+         },
+         "color": {
+          "type": "string",
+          "description": "Orb base color as a 6-digit hex."
+         },
+         "contrast": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 3,
+          "description": "Orb contrast (0.5\u20133)."
+         },
+         "flow": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3,
+          "description": "Orb animation speed (0\u20133)."
+         },
+         "swirl": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3,
+          "description": "Orb swirl strength (0\u20133)."
+         }
+        },
+        "description": "Voice visualization shown during voice conversations. Omitted fields keep their current values."
+       }
+      },
+      "description": "Voice mode configuration (null = disable voice mode)"
+     },
+     "blockedCountries": {
+      "type": [
+       "array",
+       "null"
+      ],
+      "items": {
+       "type": "string",
+       "minLength": 2,
+       "maxLength": 2
+      },
+      "maxItems": 300,
+      "description": "ISO 3166-1 alpha-2 country codes to block (null = remove all blocking)"
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_delete_agent",
+   "description": "Delete agent. Permanently deletes an agent and all its sources. Also disconnects any active integrations (Slack, WhatsApp, etc.). This action is irreversible",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false
+   }
+  },
+  {
+   "name": "chatbase_update_agent_auto_retrain",
+   "description": "Toggle auto-retrain. Enables or disables automatic retraining. When enabled, the agent retrains every 7 days to reflect any source changes.\n\nRequirements:\n- The agent must have been trained at least once \u2014 returns `AGENT_NOT_TRAINED` (409) otherwise.\n- Requires the Basic plan or higher \u2014 returns `PLAN_FEATURE_NOT_AVAILABLE` (403) on unsupported plans",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "enabled": {
+      "type": "boolean",
+      "description": "true = retrain every 7 days, false = never"
+     }
+    },
+    "required": [
+     "agentId",
+     "enabled"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_clone_agent",
+   "description": "Clone agent. Creates a full deep-clone of an agent, including all its sources (excluding Notion). Returns the new agent ID.\n\nSame response shape as Create Agent \u2014 `pendingSteps` indicates if training could not start automatically. The clone is a new, independent agent; changes to the original do not affect it.\n\nSubject to plan agent limits \u2014 returns `AGENT_LIMIT_REACHED` (403) when the account has reached its maximum number of agents",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false
+   }
+  },
+  {
+   "name": "chatbase_get_agent_analytics",
+   "description": "Get agent analytics. Returns an agent's activity over a date range split into 7 equal buckets: conversations, messages, sentiment, escalations, ratings, help desk tickets, procedure runs, tool calls and action types per bucket. For the whole range it adds conversation counts by source, action, country, answer confidence and hour of day, plus credits per day. Conversations count by last activity, and the range must fall inside the searchable window (since the 1st of the month 12 months ago, UTC)",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "startDate": {
+      "type": "string",
+      "description": "Range start (`YYYY-MM-DD` or ISO 8601). Defaults to 7 days before `endDate`."
+     },
+     "endDate": {
+      "type": "string",
+      "description": "Range end (`YYYY-MM-DD`, inclusive, or ISO 8601). Defaults to now; a later end is capped to now."
+     },
+     "timeZone": {
+      "type": "string",
+      "default": "UTC",
+      "description": "IANA time zone for `conversationsByHour`, e.g. `America/New_York`. Defaults to `UTC`."
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_chat",
+   "description": "Chat with an agent. Send a message to an agent and receive a response. Supports streaming responses when `stream: true` is set in the request body",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "message": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The user message to send to the agent. Omit to continue the conversation after submitting a tool result."
+     },
+     "conversationId": {
+      "type": "string",
+      "description": "Optional conversation ID to continue an existing conversation. If omitted, a new conversation will be started."
+     },
+     "stream": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to stream the response as Server-Sent Events (SSE). Defaults to true."
+     },
+     "userId": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Optional user ID to associate with a new conversation. Only applied when creating a new conversation (no conversationId). Once set, a conversation's userId is immutable \u2014 this field is ignored for existing conversations. Must contain only URL-safe characters (letters, digits, hyphens, underscores, dots)."
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false
+   }
+  },
+  {
+   "name": "chatbase_export_conversations",
+   "description": "Export conversations. Export all conversations with full message history for an agent. Includes conversations from all sources. Tool results are sanitized to remove internal data. Supports cursor-based pagination. Pass `conversationId` to fetch a single conversation from any source (widget, API, WhatsApp, etc.). Pass `include=summary` to omit message bodies for a cheaper triage pass, `source` to restrict to one or more conversation sources, and `startDate` / `endDate` to restrict to a createdAt window",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "cursor": {
+      "type": "string",
+      "description": "Opaque cursor from a previous response to fetch the next page"
+     },
+     "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20,
+      "default": 20,
+      "description": "Number of items per page (1\u201320, default 20)"
+     },
+     "startDate": {
+      "type": "string",
+      "description": "Only return conversations created at or after this point. Accepts a calendar date (`YYYY-MM-DD`, interpreted as the start of that day in UTC) or an ISO 8601 date-time."
+     },
+     "endDate": {
+      "type": "string",
+      "description": "Only return conversations created at or before this point. Accepts a calendar date (`YYYY-MM-DD`, interpreted as the *end* of that day in UTC, so the day itself is included) or an ISO 8601 date-time."
+     },
+     "conversationId": {
+      "type": "string",
+      "description": "Return only the conversation with this ID. Use this to fetch a single conversation from any source (widget, API, WhatsApp, etc.)."
+     },
+     "include": {
+      "type": "string",
+      "enum": [
+       "summary",
+       "messages"
+      ],
+      "default": "messages",
+      "description": "Whether to include message bodies. `summary` omits them and skips reading them from the database \u2014 use it to triage a page cheaply, then re-request a specific conversation with `conversationId`. Defaults to `messages`."
+     },
+     "source": {
+      "type": "string",
+      "description": "Comma-separated conversation sources to include, e.g. `API,WhatsApp`. Omit for all sources."
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_search_conversations",
+   "description": "Search conversations. Search an agent's conversations by text, filters, or both. With `query`, results are ranked and carry a highlighted snippet; without it, most recently active first. Filters combine with AND; comma-separated values within a filter with OR. Covers conversations created since the 1st of the month 12 months ago (UTC), activity-date filters included. Results lag new messages by a few seconds. A page can hold fewer than `limit` items, even none, while `hasMore` is true; keep paging. Read messages via export with `conversationId`",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "startDate": {
+      "type": "string",
+      "description": "Created at or after this point (`YYYY-MM-DD` or ISO 8601). Must be inside the searchable window."
+     },
+     "endDate": {
+      "type": "string",
+      "description": "Created at or before this point (`YYYY-MM-DD`, inclusive, or ISO 8601)."
+     },
+     "query": {
+      "type": "string",
+      "maxLength": 512,
+      "description": "Free-text search over messages and titles."
+     },
+     "source": {
+      "type": "string",
+      "description": "Comma-separated sources, e.g. `API,WhatsApp`."
+     },
+     "sentiment": {
+      "type": "string",
+      "description": "Comma-separated: `positive`, `neutral`, `negative`, or `unspecified` for none."
+     },
+     "topic": {
+      "type": "string",
+      "description": "Comma-separated topic names, or `unspecified` for none."
+     },
+     "userId": {
+      "type": "string",
+      "description": "Comma-separated user IDs."
+     },
+     "activityState": {
+      "type": "string",
+      "description": "Comma-separated: `ongoing`, `ended`, `taken_over`, `paused`."
+     },
+     "feedback": {
+      "type": "string",
+      "description": "Comma-separated message ratings: `positive`, `negative`."
+     },
+     "escalated": {
+      "type": "string",
+      "enum": [
+       "true"
+      ],
+      "description": "`true`: only conversations escalated to a human (ticket or live-chat handoff)."
+     },
+     "actionType": {
+      "type": "string",
+      "description": "Comma-separated action types that ran, e.g. `collect-leads`."
+     },
+     "tool": {
+      "type": "string",
+      "description": "Comma-separated tool names that were called."
+     },
+     "toolOutcome": {
+      "type": "string",
+      "description": "Comma-separated tool result statuses, e.g. `error`. Scoped to `tool` when set."
+     },
+     "procedure": {
+      "type": "string",
+      "description": "Comma-separated procedure names that ran."
+     },
+     "procedureOutcome": {
+      "type": "string",
+      "description": "Comma-separated procedure run statuses. Scoped to `procedure` when set."
+     },
+     "hasVoice": {
+      "type": "string",
+      "enum": [
+       "true",
+       "false"
+      ],
+      "description": "Whether a voice session took place."
+     },
+     "updatedAfter": {
+      "type": "string",
+      "description": "Last active at or after this point (`YYYY-MM-DD` or ISO 8601)."
+     },
+     "updatedBefore": {
+      "type": "string",
+      "description": "Last active at or before this point (`YYYY-MM-DD`, inclusive, or ISO 8601)."
+     },
+     "cursor": {
+      "type": "string",
+      "maxLength": 2048,
+      "description": "`pagination.cursor` from the previous page. Keep the other parameters unchanged."
+     },
+     "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 25,
+      "default": 25,
+      "description": "Items per page (1 to 25, default 25)"
+     },
+     "searches": {
+      "type": "array",
+      "maxItems": 5,
+      "description": "Up to 5 searches run together, each with the same filters as a single search. Results come back per search.",
+      "items": {
+       "type": "object",
+       "properties": {
+        "startDate": {
+         "type": "string",
+         "description": "Created at or after this point (`YYYY-MM-DD` or ISO 8601). Must be inside the searchable window."
+        },
+        "endDate": {
+         "type": "string",
+         "description": "Created at or before this point (`YYYY-MM-DD`, inclusive, or ISO 8601)."
+        },
+        "query": {
+         "type": "string",
+         "maxLength": 512,
+         "description": "Free-text search over messages and titles."
+        },
+        "source": {
+         "type": "string",
+         "description": "Comma-separated sources, e.g. `API,WhatsApp`."
+        },
+        "sentiment": {
+         "type": "string",
+         "description": "Comma-separated: `positive`, `neutral`, `negative`, or `unspecified` for none."
+        },
+        "topic": {
+         "type": "string",
+         "description": "Comma-separated topic names, or `unspecified` for none."
+        },
+        "userId": {
+         "type": "string",
+         "description": "Comma-separated user IDs."
+        },
+        "activityState": {
+         "type": "string",
+         "description": "Comma-separated: `ongoing`, `ended`, `taken_over`, `paused`."
+        },
+        "feedback": {
+         "type": "string",
+         "description": "Comma-separated message ratings: `positive`, `negative`."
+        },
+        "escalated": {
+         "type": "string",
+         "enum": [
+          "true"
+         ],
+         "description": "`true`: only conversations escalated to a human (ticket or live-chat handoff)."
+        },
+        "actionType": {
+         "type": "string",
+         "description": "Comma-separated action types that ran, e.g. `collect-leads`."
+        },
+        "tool": {
+         "type": "string",
+         "description": "Comma-separated tool names that were called."
+        },
+        "toolOutcome": {
+         "type": "string",
+         "description": "Comma-separated tool result statuses, e.g. `error`. Scoped to `tool` when set."
+        },
+        "procedure": {
+         "type": "string",
+         "description": "Comma-separated procedure names that ran."
+        },
+        "procedureOutcome": {
+         "type": "string",
+         "description": "Comma-separated procedure run statuses. Scoped to `procedure` when set."
+        },
+        "hasVoice": {
+         "type": "string",
+         "enum": [
+          "true",
+          "false"
+         ],
+         "description": "Whether a voice session took place."
+        },
+        "updatedAfter": {
+         "type": "string",
+         "description": "Last active at or after this point (`YYYY-MM-DD` or ISO 8601)."
+        },
+        "updatedBefore": {
+         "type": "string",
+         "description": "Last active at or before this point (`YYYY-MM-DD`, inclusive, or ISO 8601)."
+        },
+        "limit": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 25,
+         "default": 25,
+         "description": "Items per page (1 to 25, default 25)"
+        }
+       }
+      }
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_update_conversation",
+   "description": "Update conversation status. Update the activity state of a conversation.\n\n- `ongoing` \u2014 resumes a paused or ended conversation. Only API-source conversations can be resumed from ended.\n- `paused` \u2014 pauses an ongoing conversation (stops AI replies but still records messages).\n- `ended` \u2014 ends the conversation.\n\nConversation-based billing accounts cannot resume ended conversations",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "conversationId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The conversation ID"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "ongoing",
+       "paused",
+       "ended"
+      ],
+      "description": "Target activity state for the conversation"
+     }
+    },
+    "required": [
+     "agentId",
+     "conversationId",
+     "status"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_delete_conversation",
+   "description": "Delete conversation. Deletes a conversation from any source (API, widget, WhatsApp, etc.). It no longer appears in chat logs or in API responses",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "conversationId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The conversation ID"
+     }
+    },
+    "required": [
+     "agentId",
+     "conversationId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false
+   }
+  },
+  {
+   "name": "chatbase_list_collected_data",
+   "description": "List collected data. Returns the data an agent's Collect data Actions have saved, newest first. Filter by Action with `actionId` and by submission time with `startDate` / `endDate`. Supports cursor-based pagination",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "cursor": {
+      "type": "string",
+      "description": "Opaque cursor from a previous response to fetch the next page"
+     },
+     "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 20,
+      "description": "Number of items per page (1 to 100, default 20)"
+     },
+     "actionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Return only submissions collected by the Action with this ID"
+     },
+     "startDate": {
+      "type": "string",
+      "description": "Only return submissions created after this point. Accepts a calendar date (`YYYY-MM-DD`, interpreted as the start of that day in UTC) or an ISO 8601 date-time."
+     },
+     "endDate": {
+      "type": "string",
+      "description": "Only return submissions created at or before this point. Accepts a calendar date (`YYYY-MM-DD`, interpreted as the *end* of that day in UTC, so the day itself is included) or an ISO 8601 date-time."
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_get_sources_summary",
+   "description": "Get sources summary. Returns aggregated counts and sizes for each source type, plus a flag if the chatbot knowledge base requires a retrain to reflect any changes",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_list_sources",
+   "description": "List sources. Returns a paginated list of sources for an agent. Ticket sources are excluded. For link sources only individual or sitemap/crawl parent links are returned with aggregated children metadata",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "cursor": {
+      "type": "string",
+      "description": "Opaque cursor from a previous response to fetch the next page"
+     },
+     "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 20,
+      "description": "Number of items per page (1 to 100, default 20)"
+     },
+     "type": {
+      "type": "string",
+      "description": "Comma-separated source types to filter by. Allowed values: link, file, qna, notionPage, text"
+     },
+     "name": {
+      "type": "string",
+      "description": "Partial (case-insensitive) name match"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "untrained",
+       "trained",
+       "toBeDeleted",
+       "updated",
+       "failed"
+      ],
+      "description": "Only return sources with this training status"
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_create_source",
+   "description": "Create source. Creates a new source. Accepts text, qna, and link source types. File sources require a dedicated endpoint. Ticket and Notion sources are not accepted. The source starts training immediately \u2014 no separate training call is needed. It is returned as `untrained` and flips to `trained` when it is live, or `failed` if training did not land; poll `GET /agents/{agentId}/sources/{sourceId}` to follow it.\n\n**Q&A request body limit:** The total request body must not exceed 4.5 MB for Q&A sources",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "type": {
+      "type": "string",
+      "enum": [
+       "link",
+       "qna",
+       "text"
+      ]
+     },
+     "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+     },
+     "content": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1048576
+     },
+     "questions": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "minLength": 1
+      },
+      "minItems": 1,
+      "maxItems": 50
+     },
+     "answer": {
+      "type": "string",
+      "minLength": 1
+     },
+     "url": {
+      "type": "string",
+      "format": "uri"
+     },
+     "linkType": {
+      "type": "string",
+      "enum": [
+       "individual",
+       "sitemap",
+       "crawl"
+      ]
+     },
+     "excludePaths": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "includeOnlyPaths": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "slowScraping": {
+      "type": "boolean",
+      "default": false
+     }
+    },
+    "required": [
+     "agentId",
+     "type"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false
+   }
+  },
+  {
+   "name": "chatbase_get_source",
+   "description": "Get source. Returns a single source by ID",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "sourceId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The source ID"
+     }
+    },
+    "required": [
+     "agentId",
+     "sourceId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_delete_source",
+   "description": "Delete source. Deletes a source. Its knowledge is removed from the agent immediately; the response carries the final state (`deleted`, or `toBeDeleted` while the purge finishes)",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "sourceId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The source ID"
+     }
+    },
+    "required": [
+     "agentId",
+     "sourceId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false
+   }
+  },
+  {
+   "name": "chatbase_update_source",
+   "description": "Update source. Updates an existing source. Accepts text, qna, and link sources. File sources require a dedicated endpoint. A content change retrains the source immediately (status `updated` until it is live again). Link URL is immutable \u2014 to change it, delete and recreate the source. Ticket and Notion sources are not accepted.\n\n**Q&A request body limit:** The total request body must not exceed 4.5 MB for Q&A sources",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "sourceId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The source ID"
+     },
+     "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+     },
+     "content": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1048576
+     },
+     "questions": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "minLength": 1
+      },
+      "minItems": 1,
+      "maxItems": 50
+     },
+     "answer": {
+      "type": "string",
+      "minLength": 1
+     },
+     "excludePaths": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "includeOnlyPaths": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "slowScraping": {
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "agentId",
+     "sourceId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_list_actions",
+   "description": "List actions. Returns a paginated list of an agent's actions, sorted by name. Action configuration is not included",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "cursor": {
+      "type": "string",
+      "description": "Opaque cursor from a previous response to fetch the next page"
+     },
+     "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 20,
+      "description": "Number of items per page (1 to 100, default 20)"
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_get_action",
+   "description": "Get an action. Returns one action, including when the agent should use it, the fields it collects and the channels it can run on. Other configuration is not included",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "actionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The action ID"
+     }
+    },
+    "required": [
+     "agentId",
+     "actionId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_update_action",
+   "description": "Update an action. Updates an action's name, status, whenToUse, procedureOnly, per-channel switches, or the inputs it collects. A draft cannot be set to disabled; finishing its setup turns it off, and status enabled turns it on only once setup is complete. whenToUse is required unless the action is procedure-only, and an update cannot leave a complete action incomplete. Properties you leave out keep their value, but `input` fields replace the whole list. Procedures that mention a disabled action stay enabled but are skipped until the action is enabled again. Renaming updates their mentions. Changes apply to the live agent at once; publishing an older draft can undo them",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "actionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The action ID"
+     },
+     "name": {
+      "type": "string",
+      "description": "New name: 3 to 64 letters, digits, `_` or `-`, unique within the agent. Most types need a leading letter or `_`. Spaces become `_`. Sending the current name leaves it unchanged, including names those rules would reject. Procedures that mention the old name are updated."
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "enabled",
+       "disabled"
+      ],
+      "description": "Turns the action on or off"
+     },
+     "whenToUse": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "maxLength": 3000,
+      "description": "Tells the agent when to call the action. Send null or \"\" to clear it. An enabled action that is not procedure-only must keep one."
+     },
+     "procedureOnly": {
+      "type": "boolean",
+      "description": "When true, only procedures can call the action"
+     },
+     "channels": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "channel": {
+         "type": "string",
+         "enum": [
+          "chat_widget",
+          "help_page",
+          "center_stage",
+          "side_panel",
+          "slack",
+          "whatsapp",
+          "messenger",
+          "instagram",
+          "salesforce",
+          "zendesk",
+          "zendesk_messaging",
+          "api",
+          "email",
+          "android_sdk",
+          "ios_sdk",
+          "phone",
+          "search"
+         ]
+        },
+        "enabled": {
+         "type": "boolean"
+        }
+       },
+       "required": [
+        "channel",
+        "enabled"
+       ]
+      },
+      "minItems": 1,
+      "description": "Switches the action on or off per channel. Channels you leave out keep their setting. Only channels listed in the action's `channels` are accepted."
+     },
+     "fields": {
+      "type": "array",
+      "items": {
+       "oneOf": [
+        {
+         "type": "object",
+         "properties": {
+          "source": {
+           "type": "string",
+           "enum": [
+            "input"
+           ]
+          },
+          "name": {
+           "type": "string"
+          },
+          "type": {
+           "type": "string"
+          },
+          "description": {
+           "type": "string"
+          },
+          "required": {
+           "type": "boolean"
+          },
+          "array": {
+           "type": "boolean"
+          },
+          "default": {
+           "type": [
+            "string",
+            "null"
+           ]
+          }
+         },
+         "required": [
+          "source",
+          "name",
+          "type",
+          "description",
+          "required",
+          "array"
+         ]
+        },
+        {
+         "type": "object",
+         "properties": {
+          "source": {
+           "type": "string",
+           "enum": [
+            "form"
+           ]
+          },
+          "name": {
+           "type": "string"
+          },
+          "type": {
+           "type": "string"
+          },
+          "description": {
+           "type": "string",
+           "description": "The label shown on the collect-leads form"
+          },
+          "required": {
+           "type": "boolean"
+          }
+         },
+         "required": [
+          "source",
+          "name",
+          "type",
+          "description",
+          "required"
+         ]
+        },
+        {
+         "type": "object",
+         "properties": {
+          "source": {
+           "type": "string",
+           "enum": [
+            "widget"
+           ]
+          },
+          "name": {
+           "type": "string"
+          },
+          "type": {
+           "type": "string"
+          },
+          "description": {
+           "type": "string"
+          },
+          "required": {
+           "type": "boolean"
+          }
+         },
+         "required": [
+          "source",
+          "name",
+          "type",
+          "description",
+          "required"
+         ]
+        }
+       ],
+       "discriminator": {
+        "propertyName": "source",
+        "mapping": {
+         "input": "#/components/schemas/ActionInputField",
+         "form": "#/components/schemas/ActionFormField",
+         "widget": "#/components/schemas/ActionWidgetField"
+        }
+       }
+      },
+      "description": "Replaces the `input` list, so send every field to keep. The GET list round-trips unchanged. Rules follow the dashboard for each type: collect-data takes 1 to 20 fields, collect-leads 20 besides name, email and phone, shopify-exchange 20 (names up to 30 characters, descriptions up to 200). Only shopify-exchange takes `image`. `required`, `array` and `default` change only where the dashboard edits them; send `default: null` to remove one. Create-ticket, `form` and `widget` fields are read-only."
+     }
+    },
+    "required": [
+     "agentId",
+     "actionId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_delete_action",
+   "description": "Delete an action. Deletes an action from the live agent at once. Refused while any procedure mentions it; remove the mention first. Publishing an older draft can bring it back",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "actionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The action ID"
+     }
+    },
+    "required": [
+     "agentId",
+     "actionId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false
+   }
+  },
+  {
+   "name": "chatbase_list_procedures",
+   "description": "List procedures. Returns a paginated list of an agent's procedures, newest first. Steps are not included",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "cursor": {
+      "type": "string",
+      "description": "Opaque cursor from a previous response to fetch the next page"
+     },
+     "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 20,
+      "description": "Number of items per page (1 to 100, default 20)"
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_create_procedure",
+   "description": "Create a procedure. Creates a procedure on the live agent. It starts disabled; enable it with an update once every action its steps mention exists and is enabled. Publishing an older draft can remove it",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Name: 1 to 100 characters, no line breaks, unique within the agent"
+     },
+     "trigger": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "When the agent should start the procedure, up to 500 characters"
+     },
+     "steps": {
+      "type": "array",
+      "items": {
+       "oneOf": [
+        {
+         "type": "object",
+         "properties": {
+          "kind": {
+           "type": "string",
+           "enum": [
+            "instruction"
+           ]
+          },
+          "text": {
+           "type": "string",
+           "minLength": 1,
+           "maxLength": 1000,
+           "description": "What the agent does, on one line. `@` plus an action name in lowercase, with `-` written as `_`, mentions that action; `{{variable}}` inserts a variable."
+          }
+         },
+         "required": [
+          "kind",
+          "text"
+         ]
+        },
+        {
+         "type": "object",
+         "properties": {
+          "kind": {
+           "type": "string",
+           "enum": [
+            "branch"
+           ]
+          },
+          "branches": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "condition": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500,
+              "description": "When this branch runs"
+             },
+             "steps": {
+              "type": "array",
+              "items": {
+               "type": "object",
+               "properties": {
+                "kind": {
+                 "type": "string",
+                 "enum": [
+                  "instruction"
+                 ]
+                },
+                "text": {
+                 "type": "string",
+                 "minLength": 1,
+                 "maxLength": 1000,
+                 "description": "What the agent does, on one line. `@` plus an action name in lowercase, with `-` written as `_`, mentions that action; `{{variable}}` inserts a variable."
+                }
+               },
+               "required": [
+                "kind",
+                "text"
+               ]
+              },
+              "minItems": 1
+             }
+            },
+            "required": [
+             "condition",
+             "steps"
+            ]
+           },
+           "minItems": 1,
+           "maxItems": 5
+          },
+          "otherwise": {
+           "type": "object",
+           "properties": {
+            "steps": {
+             "type": "array",
+             "items": {
+              "type": "object",
+              "properties": {
+               "kind": {
+                "type": "string",
+                "enum": [
+                 "instruction"
+                ]
+               },
+               "text": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000,
+                "description": "What the agent does, on one line. `@` plus an action name in lowercase, with `-` written as `_`, mentions that action; `{{variable}}` inserts a variable."
+               }
+              },
+              "required": [
+               "kind",
+               "text"
+              ]
+             },
+             "minItems": 1
+            }
+           },
+           "required": [
+            "steps"
+           ],
+           "description": "Runs when no condition matches"
+          }
+         },
+         "required": [
+          "kind",
+          "branches"
+         ]
+        }
+       ]
+      },
+      "minItems": 1,
+      "description": "The steps in order. An `instruction` step is one line; in it `@` plus an action name in lowercase, with `-` written as `_`, mentions that action (`Order-Issue` becomes `@order_issue`), and `{{variable}}` inserts one of the agent's variables. A `branch` step runs the instructions of its first matching condition (1 to 5), or else `otherwise`; a branch cannot contain another branch. Up to 15 instruction steps in total, counting those inside branches."
+     }
+    },
+    "required": [
+     "agentId",
+     "name",
+     "trigger",
+     "steps"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false
+   }
+  },
+  {
+   "name": "chatbase_get_procedure",
+   "description": "Get a procedure. Returns one procedure, including its steps",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "procedureId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The procedure ID"
+     }
+    },
+    "required": [
+     "agentId",
+     "procedureId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_update_procedure",
+   "description": "Update a procedure. Updates a procedure's name, trigger, steps or status. Properties you leave out keep their value, but `steps` replaces all steps. Enabling needs every action the steps mention to exist and be enabled. Changes apply to the live agent at once; publishing an older draft can undo them",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "procedureId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The procedure ID"
+     },
+     "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "New name: 1 to 100 characters, no line breaks, unique within the agent"
+     },
+     "trigger": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "When the agent should start the procedure, up to 500 characters"
+     },
+     "steps": {
+      "type": "array",
+      "items": {
+       "oneOf": [
+        {
+         "type": "object",
+         "properties": {
+          "kind": {
+           "type": "string",
+           "enum": [
+            "instruction"
+           ]
+          },
+          "text": {
+           "type": "string",
+           "minLength": 1,
+           "maxLength": 1000,
+           "description": "What the agent does, on one line. `@` plus an action name in lowercase, with `-` written as `_`, mentions that action; `{{variable}}` inserts a variable."
+          }
+         },
+         "required": [
+          "kind",
+          "text"
+         ]
+        },
+        {
+         "type": "object",
+         "properties": {
+          "kind": {
+           "type": "string",
+           "enum": [
+            "branch"
+           ]
+          },
+          "branches": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "condition": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500,
+              "description": "When this branch runs"
+             },
+             "steps": {
+              "type": "array",
+              "items": {
+               "type": "object",
+               "properties": {
+                "kind": {
+                 "type": "string",
+                 "enum": [
+                  "instruction"
+                 ]
+                },
+                "text": {
+                 "type": "string",
+                 "minLength": 1,
+                 "maxLength": 1000,
+                 "description": "What the agent does, on one line. `@` plus an action name in lowercase, with `-` written as `_`, mentions that action; `{{variable}}` inserts a variable."
+                }
+               },
+               "required": [
+                "kind",
+                "text"
+               ]
+              },
+              "minItems": 1
+             }
+            },
+            "required": [
+             "condition",
+             "steps"
+            ]
+           },
+           "minItems": 1,
+           "maxItems": 5
+          },
+          "otherwise": {
+           "type": "object",
+           "properties": {
+            "steps": {
+             "type": "array",
+             "items": {
+              "type": "object",
+              "properties": {
+               "kind": {
+                "type": "string",
+                "enum": [
+                 "instruction"
+                ]
+               },
+               "text": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000,
+                "description": "What the agent does, on one line. `@` plus an action name in lowercase, with `-` written as `_`, mentions that action; `{{variable}}` inserts a variable."
+               }
+              },
+              "required": [
+               "kind",
+               "text"
+              ]
+             },
+             "minItems": 1
+            }
+           },
+           "required": [
+            "steps"
+           ],
+           "description": "Runs when no condition matches"
+          }
+         },
+         "required": [
+          "kind",
+          "branches"
+         ]
+        }
+       ]
+      },
+      "minItems": 1,
+      "description": "Replaces all steps, so send the full list in order, including unchanged steps. An `instruction` step is one line; in it `@` plus an action name in lowercase, with `-` written as `_`, mentions that action (`Order-Issue` becomes `@order_issue`), and `{{variable}}` inserts one of the agent's variables. A `branch` step runs the instructions of its first matching condition (1 to 5), or else `otherwise`; a branch cannot contain another branch. Up to 15 instruction steps in total, counting those inside branches."
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "enabled",
+       "disabled"
+      ],
+      "description": "Turns the procedure on or off"
+     }
+    },
+    "required": [
+     "agentId",
+     "procedureId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_delete_procedure",
+   "description": "Delete a procedure. Deletes a procedure from the live agent at once, together with its run history. Publishing an older draft can bring the procedure back, but not its history",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "procedureId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The procedure ID"
+     }
+    },
+    "required": [
+     "agentId",
+     "procedureId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false
+   }
+  },
+  {
+   "name": "chatbase_list_ticket_statuses",
+   "description": "List ticket statuses. Returns the active (non-archived) ticket statuses configured for an agent, ordered by category then position. Each category has exactly one default status",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_list_helpdesk_teams",
+   "description": "List teams. Returns the teams configured for an agent, ordered by creation date. Exactly one team is marked as the default for the agent",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_list_attendance_rows",
+   "description": "List attendance rows. Returns the Attendance report for each day in the range: one row per operator for each part of a shift and for time logged outside them, matching the Attendance CSV export. Days are calendar days in `timezone`. A day that has not ended yet returns what has happened so far. Pages can shift if the data changes between calls. Both reports share a limit of 30 calls per 10 seconds per account",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "cursor": {
+      "type": "string",
+      "description": "Opaque cursor from a previous response to fetch the next page"
+     },
+     "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000,
+      "default": 100,
+      "description": "Number of items per page (1 to 1000, default 100)"
+     },
+     "startDate": {
+      "type": "string",
+      "format": "date",
+      "description": "First day to return (`YYYY-MM-DD`), as a calendar day in `timezone`. At most 396 days ago."
+     },
+     "endDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Last day to return (`YYYY-MM-DD`), inclusive. Not after today in `timezone`, and at most 31 days from `startDate` counting both."
+     },
+     "timezone": {
+      "type": "string",
+      "description": "IANA time zone that decides where each day starts and ends, the same as the time zone picker on the dashboard."
+     }
+    },
+    "required": [
+     "agentId",
+     "startDate",
+     "endDate",
+     "timezone"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_list_activity_segments",
+   "description": "List activity segments. Returns the stored activity segments of the agent's current Help Desk operators, unmerged and unrounded, so totals can differ slightly from the Activity export. One item per ticket, untracked or idle stretch, listed only in the range where it started. Both reports share a limit of 30 calls per 10 seconds per account",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "cursor": {
+      "type": "string",
+      "description": "Opaque cursor from a previous response to fetch the next page"
+     },
+     "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000,
+      "default": 100,
+      "description": "Number of items per page (1 to 1000, default 100)"
+     },
+     "startDate": {
+      "type": "string",
+      "format": "date",
+      "description": "First day to return (`YYYY-MM-DD`), as a calendar day in `timezone`. At most 396 days ago."
+     },
+     "endDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Last day to return (`YYYY-MM-DD`), inclusive. Not after today in `timezone`, and at most 31 days from `startDate` counting both."
+     },
+     "timezone": {
+      "type": "string",
+      "description": "IANA time zone that decides where each day starts and ends, the same as the time zone picker on the dashboard."
+     }
+    },
+    "required": [
+     "agentId",
+     "startDate",
+     "endDate",
+     "timezone"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_create_ticket",
+   "description": "Create a ticket. Creates a ticket on behalf of a customer. Unless an assignee is provided, the ticket is auto-assigned via the agent's routing rules",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "subject": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "Ticket subject (1-500 characters)"
+     },
+     "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 10000,
+      "description": "The first message body, written as a reply authored by the customer (1-10,000 characters)"
+     },
+     "customer": {
+      "type": "object",
+      "properties": {
+       "email": {
+        "type": "string",
+        "format": "email",
+        "description": "Resolves to an existing chatbot_users row for this agent, or creates one"
+       },
+       "name": {
+        "type": "string",
+        "maxLength": 255,
+        "description": "Used only when creating a new customer record; ignored if the email already resolves"
+       }
+      },
+      "required": [
+       "email"
+      ]
+     },
+     "statusId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of an existing status for this agent. Provide at most one of statusId / statusCategory."
+     },
+     "statusCategory": {
+      "type": "string",
+      "enum": [
+       "new",
+       "on_you",
+       "on_customer",
+       "on_hold",
+       "closed",
+       "cancelled"
+      ],
+      "description": "Status category; resolves to that category's default status. Provide at most one of statusId / statusCategory. Defaults to the \"new\" category default when neither is provided."
+     },
+     "assigneeId": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "format": "uuid",
+      "description": "Platform user id of the agent to assign. Provide at most one of assigneeId / assigneeEmail. Pass `null` to explicitly create the ticket unassigned (suppresses auto-assignment); omit to let auto-assignment apply."
+     },
+     "assigneeEmail": {
+      "type": "string",
+      "format": "email",
+      "description": "Email of the agent to assign (case-insensitive). Provide at most one of assigneeId / assigneeEmail."
+     },
+     "teamId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of an existing team for this agent. When provided without any assignee field, an agent is picked within this team using the team's own assignment strategy, and routing rules are skipped. When provided together with assigneeId/assigneeEmail, including assigneeId: null, no auto-assignment runs and the team is written as given."
+     },
+     "priority": {
+      "type": "string",
+      "enum": [
+       "none",
+       "low",
+       "normal",
+       "high",
+       "urgent"
+      ],
+      "description": "Ticket priority. Defaults to `none` (untriaged) when omitted."
+     }
+    },
+    "required": [
+     "agentId",
+     "subject",
+     "description",
+     "customer"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false
+   }
+  },
+  {
+   "name": "chatbase_list_tickets",
+   "description": "List tickets. Returns tickets for an agent, sorted by `updatedAt` descending by default. Supports filtering and cursor-based pagination. Filters combine with AND across parameters",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "cursor": {
+      "type": "string",
+      "description": "Opaque cursor from a previous response to fetch the next page"
+     },
+     "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 20,
+      "description": "Number of items per page (1 to 100, default 20)"
+     },
+     "status": {
+      "type": "string",
+      "description": "Comma-separated status categories (is-any-of). Categories: new, on_you, on_customer, on_hold, closed, cancelled."
+     },
+     "channel": {
+      "type": "string",
+      "description": "Comma-separated channels (is-any-of)."
+     },
+     "assigneeId": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "none"
+        ]
+       },
+       {
+        "type": "string",
+        "format": "uuid"
+       }
+      ],
+      "description": "Filter by assigned agent user id. Pass `none` for unassigned tickets."
+     },
+     "teamId": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "none"
+        ]
+       },
+       {
+        "type": "string",
+        "format": "uuid"
+       }
+      ],
+      "description": "Filter by team id. Pass `none` for tickets with no team."
+     },
+     "priority": {
+      "type": "string",
+      "description": "Comma-separated priorities (is-any-of). Priorities: none, low, normal, high, urgent. Pass `none` for untriaged tickets."
+     },
+     "createdAfter": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Only tickets created at or after this ISO 8601 timestamp."
+     },
+     "createdBefore": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Only tickets created at or before this ISO 8601 timestamp."
+     },
+     "sortBy": {
+      "type": "string",
+      "enum": [
+       "createdAt",
+       "updatedAt",
+       "lastMessageAt"
+      ],
+      "default": "updatedAt",
+      "description": "Sort field. `updatedAt` and `lastMessageAt` fall back to `createdAt` when unset. Sorting by a mutable field means a page window is not a snapshot. Pollers should use `sortBy=updatedAt&order=asc` with a high-water mark."
+     },
+     "order": {
+      "type": "string",
+      "enum": [
+       "asc",
+       "desc"
+      ],
+      "default": "desc",
+      "description": "Sort direction. Defaults to `desc`, newest first. A cursor is only valid for the `sortBy`/`order` it was issued with; changing either mid-walk is a 400."
+     },
+     "includeTotal": {
+      "type": "string",
+      "enum": [
+       "true",
+       "false"
+      ],
+      "default": "false",
+      "description": "When `true`, the response includes `pagination.total` (costs an extra count query)."
+     },
+     "includeMessages": {
+      "type": "string",
+      "enum": [
+       "true",
+       "false"
+      ],
+      "default": "false",
+      "description": "When `true`, each ticket includes `messages`: its first 25 messages, oldest first, shaped like List ticket messages."
+     },
+     "messageTypes": {
+      "type": "string",
+      "default": "reply,note",
+      "description": "Message types for `messages`, as in List ticket messages. Ignored unless `includeMessages=true`."
+     }
+    },
+    "required": [
+     "agentId"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_search_tickets",
+   "description": "Search tickets. Searches ticket messages with a free-text query and returns matching tickets ranked by relevance. Results are capped and not paginated",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "query": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "description": "Free-text search terms, matched against ticket messages."
+     },
+     "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50,
+      "default": 20,
+      "description": "Number of results to return (1 to 50, default 20)"
+     }
+    },
+    "required": [
+     "agentId",
+     "query"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_get_ticket",
+   "description": "Get a ticket. Returns a single ticket by its per-agent ticket number",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "ticketNumber": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 2147483647,
+      "description": "The ticket number"
+     }
+    },
+    "required": [
+     "agentId",
+     "ticketNumber"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_update_ticket",
+   "description": "Update a ticket. Partially updates a ticket's status, assignee, team, or priority. Only provided fields are changed. Fields are validated together but written independently, so a 500 can leave a partial update",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "ticketNumber": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 2147483647,
+      "description": "The ticket number"
+     },
+     "statusId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of an existing status for this agent. Provide at most one of statusId / statusCategory. Omit to leave the status unchanged."
+     },
+     "statusCategory": {
+      "type": "string",
+      "enum": [
+       "new",
+       "on_you",
+       "on_customer",
+       "on_hold",
+       "closed",
+       "cancelled"
+      ],
+      "description": "Status category; resolves to that category's default status. Provide at most one of statusId / statusCategory. Omit to leave the status unchanged."
+     },
+     "assigneeId": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "format": "uuid",
+      "description": "Platform user id of the agent to assign. Provide at most one of assigneeId / assigneeEmail. Pass null to unassign the ticket. Omit to leave the assignee unchanged."
+     },
+     "assigneeEmail": {
+      "type": "string",
+      "format": "email",
+      "description": "Email of the agent to assign (case-insensitive). Provide at most one of assigneeId / assigneeEmail. Does not accept null; unassign via assigneeId: null. Omit to leave the assignee unchanged."
+     },
+     "teamId": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "format": "uuid",
+      "description": "ID of an existing team for this agent. Pass null to clear the team. Omit to leave the team unchanged."
+     },
+     "priority": {
+      "type": "string",
+      "enum": [
+       "none",
+       "low",
+       "normal",
+       "high",
+       "urgent"
+      ],
+      "description": "New ticket priority. Pass `none` to clear it. Omit to leave the priority unchanged."
+     },
+     "agentEmail": {
+      "type": "string",
+      "format": "email",
+      "description": "Optional. Attribute this change to the agent with this email \u2014 a member of this account (case-insensitive). If omitted, or the email is not a recognized member, the change is recorded as an automatic system change. Not itself a change: you must still provide at least one field above."
+     }
+    },
+    "required": [
+     "agentId",
+     "ticketNumber"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_list_ticket_messages",
+   "description": "List ticket messages. Returns a ticket's message thread in chronological order. Supports cursor-based pagination",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "ticketNumber": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 2147483647,
+      "description": "The ticket number"
+     },
+     "cursor": {
+      "type": "string",
+      "description": "Opaque cursor from a previous response to fetch the next page"
+     },
+     "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 20,
+      "description": "Number of items per page (1 to 100, default 20)"
+     },
+     "types": {
+      "type": "string",
+      "default": "reply,note",
+      "description": "Comma-separated message types. Defaults to `reply,note`; system `event` messages are opt-in."
+     },
+     "order": {
+      "type": "string",
+      "enum": [
+       "asc",
+       "desc"
+      ],
+      "default": "asc",
+      "description": "Chronological direction. Defaults to `asc`, so a thread reads oldest-first. A cursor is only valid for the direction it was issued with."
+     }
+    },
+    "required": [
+     "agentId",
+     "ticketNumber"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  },
+  {
+   "name": "chatbase_create_ticket_message",
+   "description": "Add a message to a ticket. Posts an agent reply or internal note to a ticket on behalf of a team member. Reply delivery to the customer is asynchronous; a 201 confirms the reply was recorded, not delivered. Posting a reply may transition the ticket status, matching dashboard behavior. Notes are never delivered to the customer",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "agentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent ID"
+     },
+     "ticketNumber": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 2147483647,
+      "description": "The ticket number"
+     },
+     "type": {
+      "type": "string",
+      "enum": [
+       "reply",
+       "note"
+      ],
+      "description": "Message type. `reply` is customer-visible and delivered to the customer. `note` is internal to your team, is never delivered, and can be added to closed or merged tickets."
+     },
+     "content": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 10000,
+      "description": "Message body as GitHub-flavored Markdown. Plain text is valid markdown; single newlines are kept as line breaks. Raw inline HTML is stripped. Limited to 10,000 characters after trimming."
+     },
+     "authorId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Platform user id of the team member the reply is attributed to. Provide exactly one of authorId / authorEmail."
+     },
+     "authorEmail": {
+      "type": "string",
+      "format": "email",
+      "description": "Email of the team member the reply is attributed to (case-insensitive). Provide exactly one of authorId / authorEmail."
+     }
+    },
+    "required": [
+     "agentId",
+     "ticketNumber",
+     "type",
+     "content"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false
+   }
+  },
+  {
+   "name": "chatbase_whoami",
+   "description": "Who is signed in: the user id, the team, the plan and the scopes this connection was granted.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {}
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true
+   }
+  }
+ ]
+}
