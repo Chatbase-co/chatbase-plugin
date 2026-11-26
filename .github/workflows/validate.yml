@@ -13,17 +13,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Expected layout files are present
+      - name: Every plugin in the marketplace has its layout files
         run: |
-          for f in \
-            .claude-plugin/marketplace.json \
-            plugins/chatbase/.claude-plugin/plugin.json \
-            plugins/chatbase/.codex-plugin/plugin.json \
-            plugins/chatbase/.mcp.json \
-            plugins/chatbase/assets/icon.png \
-            plugins/chatbase/skills/chatbase/SKILL.md \
-            plugins/chatbase/skills/chatbase/SKILL.md.sha256; do
-              test -f "$f" || { echo "missing required file: $f"; exit 1; }
+          test -f .claude-plugin/marketplace.json || { echo "missing required file: .claude-plugin/marketplace.json"; exit 1; }
+          for dir in $(node -e "for (const p of JSON.parse(require('fs').readFileSync('.claude-plugin/marketplace.json','utf8')).plugins) console.log(p.source)"); do
+            for f in \
+              .claude-plugin/plugin.json \
+              .codex-plugin/plugin.json \
+              .mcp.json \
+              assets/icon.png \
+              skills/chatbase/SKILL.md \
+              skills/chatbase/SKILL.md.sha256; do
+                test -f "$dir/$f" || { echo "missing required file: $dir/$f"; exit 1; }
+            done
           done
 
       - name: Every JSON parses
@@ -33,43 +35,52 @@ jobs:
               || { echo "invalid JSON: $f"; exit 1; }
           done
 
-      - name: Manifests carry the required fields and agree on version
+      - name: Manifests carry the required fields and agree on name and version
         run: |
           node -e "
           const fs = require('fs');
-          const cc = JSON.parse(fs.readFileSync('plugins/chatbase/.claude-plugin/plugin.json','utf8'));
-          const cx = JSON.parse(fs.readFileSync('plugins/chatbase/.codex-plugin/plugin.json','utf8'));
-          for (const [label, m] of [['claude', cc], ['codex', cx]]) {
-            for (const field of ['name','version','description']) {
-              if (!m[field]) { console.error(label + ' manifest missing ' + field); process.exit(1); }
+          const market = JSON.parse(fs.readFileSync('.claude-plugin/marketplace.json','utf8'));
+          for (const p of market.plugins) {
+            const cc = JSON.parse(fs.readFileSync(p.source + '/.claude-plugin/plugin.json','utf8'));
+            const cx = JSON.parse(fs.readFileSync(p.source + '/.codex-plugin/plugin.json','utf8'));
+            for (const [label, m] of [['claude', cc], ['codex', cx]]) {
+              for (const field of ['name','version','description']) {
+                if (!m[field]) { console.error(p.name + ': ' + label + ' manifest missing ' + field); process.exit(1); }
+              }
+              if (!/^\d+\.\d+\.\d+$/.test(m.version)) { console.error(p.name + ': ' + label + ' version not semver'); process.exit(1); }
+              if (m.name !== p.name) { console.error(p.name + ': ' + label + ' manifest name is ' + m.name); process.exit(1); }
             }
-            if (!/^\d+\.\d+\.\d+$/.test(m.version)) { console.error(label + ' version not semver'); process.exit(1); }
+            if (cc.version !== cx.version) { console.error(p.name + ': manifest versions disagree: ' + cc.version + ' vs ' + cx.version); process.exit(1); }
           }
-          if (cc.version !== cx.version) { console.error('manifest versions disagree: ' + cc.version + ' vs ' + cx.version); process.exit(1); }
           "
 
-      - name: Server config points at production and ships no credential
+      - name: Server configs point at production and ship no credential
         run: |
           node -e "
-          const cfg = JSON.parse(require('fs').readFileSync('plugins/chatbase/.mcp.json','utf8'));
-          const s = cfg.mcpServers && cfg.mcpServers.chatbase;
-          if (!s) { console.error('no chatbase server entry'); process.exit(1); }
-          if (s.url !== 'https://mcp.chatbase.co/api/mcp') { console.error('wrong url: ' + s.url); process.exit(1); }
-          const blob = JSON.stringify(cfg).toLowerCase();
-          for (const bad of ['authorization','token','bearer','api_key','apikey','secret']) {
-            if (blob.includes(bad)) { console.error('config appears to carry a credential: ' + bad); process.exit(1); }
+          const fs = require('fs');
+          const market = JSON.parse(fs.readFileSync('.claude-plugin/marketplace.json','utf8'));
+          for (const p of market.plugins) {
+            const cfg = JSON.parse(fs.readFileSync(p.source + '/.mcp.json','utf8'));
+            const s = cfg.mcpServers && cfg.mcpServers.chatbase;
+            if (!s) { console.error(p.name + ': no chatbase server entry'); process.exit(1); }
+            if (s.url !== 'https://mcp.chatbase.co/api/mcp') { console.error(p.name + ': wrong url: ' + s.url); process.exit(1); }
+            const blob = JSON.stringify(cfg).toLowerCase();
+            for (const bad of ['authorization','token','bearer','api_key','apikey','secret']) {
+              if (blob.includes(bad)) { console.error(p.name + ': config appears to carry a credential: ' + bad); process.exit(1); }
+            }
           }
           "
 
-      - name: Generated skill has not been hand-edited
+      - name: Generated skill has not been hand-edited, and every copy matches it
         run: |
-          test -f plugins/chatbase/skills/chatbase/SKILL.md.sha256 || {
-            echo 'checksum sidecar missing'; exit 1; }
           expected=$(cat plugins/chatbase/skills/chatbase/SKILL.md.sha256)
-          actual=$(sha256sum plugins/chatbase/skills/chatbase/SKILL.md | cut -d' ' -f1)
-          if [ "$expected" != "$actual" ]; then
-            echo "SKILL.md does not match its checksum."
-            echo "It is generated from docs/mcp/SKILL.md in the chatbase repo."
-            echo "Edit it there; the sync will republish it here."
-            exit 1
-          fi
+          for f in plugins/*/skills/chatbase/SKILL.md; do
+            actual=$(sha256sum "$f" | cut -d' ' -f1)
+            sidecar=$(cat "$f.sha256")
+            if [ "$expected" != "$actual" ] || [ "$sidecar" != "$actual" ]; then
+              echo "$f does not match plugins/chatbase/skills/chatbase/SKILL.md.sha256."
+              echo "It is generated from docs/mcp/SKILL.md in the chatbase repo."
+              echo "Edit it there; the sync republishes it, and each role plugin carries an identical copy."
+              exit 1
+            fi
+          done

@@ -1,0 +1,12 @@
+{
+  "name": "chatbase-sales",
+  "displayName": "Chatbase for Sales",
+  "version": "0.1.0",
+  "description": "Turn your Chatbase website agent into a pipeline from Claude: a daily digest of new leads with what they asked, hot leads handed to your CRM and reps, call prep and follow-ups from the chat, buying signals, objections the bot handles badly, and a weekly pipeline report.",
+  "author": { "name": "Chatbase", "url": "https://www.chatbase.co" },
+  "homepage": "https://www.chatbase.co",
+  "repository": "https://github.com/Chatbase-co/chatbase-plugin",
+  "license": "MIT",
+  "privacyPolicyUrl": "https://www.chatbase.co/legal/privacy",
+  "keywords": ["sales", "leads", "lead generation", "pipeline", "revops", "sdr", "demo booking", "crm", "ai agent", "chatbase"]
+}

@@ -1,12 +1,25 @@
 {
   "name": "chatbase",
   "description": "Official Chatbase MCP plugin",
-  "owner": { "name": "Chatbase", "url": "https://www.chatbase.co" },
+  "owner": {
+    "name": "Chatbase",
+    "url": "https://www.chatbase.co"
+  },
   "plugins": [
     {
       "name": "chatbase",
       "source": "./plugins/chatbase",
       "description": "Manage Chatbase agents, sources, conversations and help-desk tickets from your editor."
+    },
+    {
+      "name": "chatbase-customer-support",
+      "source": "./plugins/chatbase-customer-support",
+      "description": "For support and CX teams: work the Chatbase help desk, fix wrong answers, roll out policy changes, turn bug reports into one issue, and send a weekly support report."
+    },
+    {
+      "name": "chatbase-sales",
+      "source": "./plugins/chatbase-sales",
+      "description": "For sales and RevOps teams: a daily lead digest, hot-lead handoffs to your CRM and reps, call prep and follow-ups from the chat, and a weekly pipeline report."
     }
   ]
 }

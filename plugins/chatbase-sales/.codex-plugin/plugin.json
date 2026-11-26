@@ -1,0 +1,9 @@
+{
+  "name": "chatbase-sales",
+  "version": "0.1.0",
+  "description": "Turn your Chatbase website agent into a pipeline from Claude: a daily digest of new leads with what they asked, hot leads handed to your CRM and reps, call prep and follow-ups from the chat, buying signals, objections the bot handles badly, and a weekly pipeline report.",
+  "author": {
+    "name": "Chatbase",
+    "url": "https://www.chatbase.co"
+  }
+}

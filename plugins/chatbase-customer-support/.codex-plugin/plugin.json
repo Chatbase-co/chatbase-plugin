@@ -1,0 +1,9 @@
+{
+  "name": "chatbase-customer-support",
+  "version": "0.1.0",
+  "description": "Run your Chatbase AI support agent and help desk from Claude: work the ticket queue, find and fix wrong answers, roll out policy changes, turn bug reports into one issue, and send leadership a weekly support report.",
+  "author": {
+    "name": "Chatbase",
+    "url": "https://www.chatbase.co"
+  }
+}
