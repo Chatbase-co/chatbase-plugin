@@ -5,6 +5,7 @@
 
 PLUGIN = "chatbase-sales"
 SERVER = "chatbase"
+APPEND_SYSTEM_PROMPT = "Today is Wednesday 2026-11-25, 15:00 in America/Toronto. Use this as the current date and time."
 
 WRITES = ["chatbase_update_agent", "chatbase_create_source", "chatbase_update_source", "chatbase_delete_source",
           "chatbase_create_procedure", "chatbase_update_procedure", "chatbase_update_action", "chatbase_create_agent"]

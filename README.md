@@ -8,10 +8,10 @@ Model Context Protocol.
 | Plugin | For | What it adds |
 |---|---|---|
 | `chatbase` | Anyone using Chatbase from an editor | The Chatbase MCP server and general skills for agents, sources, conversations and the help desk |
-| `chatbase-customer-service` | Support and CX teams | Help desk queue and replies, fixing wrong answers, policy changes everywhere, bug clusters, knowledge gaps, procedures, launch updates, shift handoffs and a weekly support report |
+| `chatbase-customer-support` | Support and CX teams | Help desk queue and replies, fixing wrong answers, policy changes everywhere, bug clusters, knowledge gaps, procedures, launch updates, shift handoffs and a weekly support report |
 | `chatbase-sales` | Sales, SDR and RevOps teams | Lead digest, hot-lead handoffs, call prep, follow-up drafts, buying signals, objections, qualification and booking setup, and a weekly pipeline report |
 
-All three use the same MCP server (`https://mcp.chatbase.co/api/mcp`). Install the one that fits; replace `chatbase@chatbase` below with `chatbase-customer-service@chatbase` or `chatbase-sales@chatbase`.
+All three use the same MCP server (`https://mcp.chatbase.co/api/mcp`). Install the one that fits; replace `chatbase@chatbase` below with `chatbase-customer-support@chatbase` or `chatbase-sales@chatbase`.
 
 ## Install
 
@@ -47,12 +47,12 @@ shipped in this repository.
 
 ## Evals
 
-`chatbase-customer-service` and `chatbase-sales` ship an eval suite in `evals/` for `claude plugin eval`
+`chatbase-customer-support` and `chatbase-sales` ship an eval suite in `evals/` for `claude plugin eval`
 (Claude Code 2.1.269 or later). The cases run against a fictional company played by a mock Chatbase
 server, so they need no Chatbase account and spend no credits:
 
 ```
-cd plugins/chatbase-customer-service
+cd plugins/chatbase-customer-support
 claude plugin eval . --runs 1 --ablation none --no-publish --max-cost-usd 10
 ```
 

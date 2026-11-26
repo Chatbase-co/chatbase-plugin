@@ -12,8 +12,8 @@
       "description": "Manage Chatbase agents, sources, conversations and help-desk tickets from your editor."
     },
     {
-      "name": "chatbase-customer-service",
-      "source": "./plugins/chatbase-customer-service",
+      "name": "chatbase-customer-support",
+      "source": "./plugins/chatbase-customer-support",
       "description": "For support and CX teams: work the Chatbase help desk, fix wrong answers, roll out policy changes, turn bug reports into one issue, and send a weekly support report."
     },
     {

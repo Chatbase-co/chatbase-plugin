@@ -3,7 +3,7 @@
 
     python3 -I write_cases.py <cases.py> <plugin dir>
 
-The spec file defines PLUGIN, SERVER and CASES. Each case: name, prompt, optional tags/max_turns/runs,
+The spec file defines PLUGIN, SERVER and CASES, and optionally APPEND_SYSTEM_PROMPT (added to every case). Each case: name, prompt, optional tags/max_turns/runs,
 skill (the skill that should fire), used / unused (tools that must / must not be called: a name, or {tool, match, min}),
 order (pairs of tools), llm (a PASS/FAIL rubric on the final reply), regex (extra regex graders).
 Tool names are the MCP tool names; this script adds the plugin prefix.
@@ -32,6 +32,9 @@ def main():
         fm = [f"name: {c['name']}", f"tags: {json.dumps(c.get('tags', []))}",
               f"max_turns: {c.get('max_turns', 40)}", f"runs: {c.get('runs', 3)}",
               f"timeout_seconds: {c.get('timeout', 900)}"]
+        if spec.get("APPEND_SYSTEM_PROMPT"):
+            # Pins the date and setting the mock account is written for, so results don't shift with the clock.
+            fm.append(f"append_system_prompt: {yaml_str(spec['APPEND_SYSTEM_PROMPT'])}")
         if c.get("expected"):
             fm.append(f"expected_outcome: {yaml_str(c['expected'])}")
         open(os.path.join(d, "prompt.md"), "w").write("---\n" + "\n".join(fm) + "\n---\n" + c["prompt"].strip() + "\n")
