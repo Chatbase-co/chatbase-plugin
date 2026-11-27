@@ -19,7 +19,12 @@ codex plugin marketplace add Chatbase-co/chatbase-plugin
 codex plugin add chatbase@chatbase
 ```
 
-Both platforms read the same `plugins/chatbase/.mcp.json` server definition.
+### Cursor
+
+Install **Chatbase** from the [Cursor Marketplace](https://cursor.com/marketplace), or test it
+locally by copying `plugins/chatbase` to `~/.cursor/plugins/local/chatbase` and reloading Cursor.
+
+All three platforms read the same `plugins/chatbase/.mcp.json` server definition.
 
 ### Already have a `chatbase` MCP server configured manually?
 

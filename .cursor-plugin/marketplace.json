@@ -1,0 +1,12 @@
+{
+  "name": "chatbase",
+  "owner": { "name": "Chatbase", "email": "support@chatbase.co" },
+  "metadata": { "description": "Official Chatbase MCP plugin" },
+  "plugins": [
+    {
+      "name": "chatbase",
+      "source": "./plugins/chatbase",
+      "description": "Manage Chatbase agents, sources, conversations and help-desk tickets from your editor."
+    }
+  ]
+}

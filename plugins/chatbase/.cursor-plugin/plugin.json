@@ -1,0 +1,13 @@
+{
+  "name": "chatbase",
+  "displayName": "Chatbase",
+  "description": "Manage Chatbase AI agents, sources, conversations and help-desk tickets: build and train agents, fix weak answers, and work the help desk queue.",
+  "author": { "name": "Chatbase", "email": "support@chatbase.co" },
+  "homepage": "https://www.chatbase.co/docs/developer-guides/mcp",
+  "repository": "https://github.com/Chatbase-co/chatbase-plugin",
+  "license": "MIT",
+  "keywords": ["chatbase", "customer-support", "ai-agents", "helpdesk", "mcp"],
+  "logo": "assets/logo.svg",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}
